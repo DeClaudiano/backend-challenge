@@ -1,0 +1,74 @@
+# Environment / secrets
+
+.env
+.env.*
+!.env.example
+
+# Go binaries
+
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go test / coverage artifacts
+
+*.test
+*.out
+coverage.out
+coverage.html
+coverage.xml
+
+# Local build artifacts
+
+/bin/
+/build/
+/dist/
+
+# Profiling / debugging artifacts
+
+*.prof
+*.pprof
+
+# Logs
+
+*.log
+logs/
+
+# Temporary files
+
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Editor / IDE
+
+.idea/
+.vscode/
+*.iml
+
+# OS
+
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+
+# Local Docker / infrastructure state
+
+docker-data/
+.localstack/
+localstack_data/
+postgres_data/
+
+# Swap / backup files
+
+*.swp
+*.swo
+*~
+*.bak
