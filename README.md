@@ -1,4 +1,4 @@
-# Backend Challenge — Distributed Wagering in Go
+# Backend Challenge — Distributed Transaction Processing in Go
 
 Implementação do desafio de processamento distribuído de apostas em Go, com foco em:
 
