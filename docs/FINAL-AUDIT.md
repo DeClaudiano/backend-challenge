@@ -1,6 +1,6 @@
 # Auditoria final — requisito × código × teste
 
-Data: 2026-09-26 — revisão P4
+Data: 2026-09-26 — revisão 
 
 ## Regra de evidência
 
@@ -43,7 +43,7 @@ O teste `TestSQSPoisonMessageReachesDLQ` verificava um `messageId` dentro de um 
 
 Também foi corrigida a inconsistência documental de `ARCHITECTURE.md`: a documentação dizia que ainda não existiam dois clients de provider para a prova E2E, embora `wallet-api` e `wallet-provider-b` já estivessem provisionados.
 
-## Conclusão P4
+## Conclusão 
 
 A implementação permanece **estruturalmente fechada para P0–P3** e o P4 atualizou a documentação para refletir o estado real do checkout, sem alterar código de produção já validado.
 
