@@ -1,6 +1,6 @@
 # Auditoria final — requisito × código × teste
 
-Data: 2026-09-26 — revisão P4
+Data: 2026-09-26 — revisão 
 
 ## Regra de evidência
 
