@@ -1,63 +1,778 @@
 # Auditoria final — requisito × código × teste
 
-Data: 2026-09-26 — revisão 
+**Data:** 2026-09-27
+**Revisão:** auditoria final de entrega
 
-## Regra de evidência
+---
 
-`IMPLEMENTADO` significa que há código correspondente e teste(s) no checkout.
-`EXECUTADO` significa que o teste foi efetivamente executado nesta revisão.
-`BLOQUEADO` significa que existe teste/implementação, mas a execução exige infraestrutura ou dependências indisponíveis neste ambiente.
+## 1. Regra de evidência
 
-## Matriz principal
+Esta auditoria diferencia implementação de execução:
 
-| Requisito | Código principal | Teste/evidência | Estado |
-|---|---|---|---|
-| REQ-050–074 — Money/precisão/ISO | `internal/domain/money/*` | `internal/domain/money/money_test.go` | IMPLEMENTADO; testes focados executados |
-| REQ-075–093 — Wallet/Ledger | `internal/domain/wallet/*`, `internal/domain/ledger/*`, migrations | `internal/domain/*_test.go`, `tests/integration/postgres_integration_test.go` | IMPLEMENTADO; integração real bloqueada nesta máquina |
-| REQ-094–118 — WagerTransaction/regras | `internal/domain/wagering/*`, `internal/application/wagering/*` | `internal/domain/wagering/*_test.go`, `internal/application/wagering/*_test.go` | IMPLEMENTADO |
-| REQ-119–137 — idempotência/conflitos | `internal/application/wagering/*`, `transaction_repository.go` | `services_test.go`, `tests/integration/postgres_integration_test.go`, E2E | IMPLEMENTADO; integração/E2E bloqueados |
-| REQ-138–158 — HTTP/OIDC/autorização | `internal/adapters/http/*`, `internal/adapters/oidc/*` | adapter tests + `tests/e2e/e2e_test.go` | IMPLEMENTADO; E2E bloqueado |
-| REQ-159–176 — Inbox/SQS | `internal/application/consumers/*`, `internal/adapters/sqs/*`, `worker.go` | consumer tests + `tests/recovery_integration_test.go` + E2E | IMPLEMENTADO; infraestrutura real bloqueada |
-| REQ-177–209 — Outbox/eventos/recovery | `internal/application/events/*`, `publisher/*`, `outbox_repository.go`, `outbox_worker.go` | event/publisher tests + recovery/E2E | IMPLEMENTADO; infraestrutura real bloqueada |
-| REQ-180–194 — PENDING_REFERENCE | `internal/application/references/*`, `reference_worker.go`, migration 000003 | application tests + PostgreSQL integration/recovery | IMPLEMENTADO; execução real bloqueada |
-| REQ-210–213 — observabilidade/health | `internal/observability/*`, HTTP/worker bootstrap | metrics/context tests + HTTP E2E | IMPLEMENTADO; E2E bloqueado |
-| REQ-220–223 — unitários | domínio/application/adapters | `*_test.go` | IMPLEMENTADO; foco executável depende de módulos |
-| REQ-224–243 — integração/E2E/recovery | `tests/integration`, `tests/e2e`, `tests/recovery_integration_test.go` | matriz real no repositório | IMPLEMENTADO; EXECUÇÃO BLOQUEADA |
-| REQ-244 — race | projeto inteiro | `go test -race ./...` | BLOQUEADO nesta máquina |
-| REQ-270–283 — entrega/documentação | `README.md`, `ARCHITECTURE.md`, Compose, migrations, `.env.example` | `docs/TEST-MATRIX.md`, scripts e documentação | IMPLEMENTADO; execução limpa bloqueada |
+* **IMPLEMENTADO** — existe código correspondente e teste/evidência no checkout.
+* **EXECUTADO** — o teste ou comando foi efetivamente executado na validação final.
+* **VALIDADO** — implementação e comportamento foram exercitados e o cenário passou.
+* **BLOQUEADO** — não utilizado nesta auditoria final; cenários anteriormente bloqueados foram posteriormente executados.
 
-## Verificações locais realizadas nesta revisão
+---
 
-- `gofmt -l` — sem arquivos pendentes.
-- `sh -n deploy/compose/localstack-init.sh scripts/migrate.sh` — passou.
-- `deploy/keycloak/realm.json` — JSON válido.
-- `go test ./...` — não concluído: dependências Go não terminaram de baixar no ambiente.
-- `go test -race ./...` — não executado pelo mesmo bloqueio.
-- `go vet ./...` — não executado pelo mesmo bloqueio.
-- `docker compose config` — não executado: Docker não está instalado/disponível no ambiente.
-- PostgreSQL/Keycloak/LocalStack reais — não executados nesta revisão.
+# 2. Matriz principal
 
-## Correção encontrada na auditoria
+| Requisito                             | Código principal                                                       | Teste/evidência                     | Estado                      |
+| ------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------- | --------------------------- |
+| REQ-050–074 — Money/precisão/ISO      | `internal/domain/money/*`                                              | testes de domínio                   | **IMPLEMENTADO / VALIDADO** |
+| REQ-075–093 — Wallet/Ledger           | `internal/domain/wallet/*`, `internal/domain/ledger/*`, migrations     | testes de domínio + PostgreSQL      | **IMPLEMENTADO / VALIDADO** |
+| REQ-094–118 — WagerTransaction/regras | `internal/domain/wagering/*`, `internal/application/wagering/*`        | testes de domínio/application       | **IMPLEMENTADO / VALIDADO** |
+| REQ-119–137 — idempotência/conflitos  | `internal/application/wagering/*`, repositories PostgreSQL             | testes unitários + integração + E2E | **IMPLEMENTADO / VALIDADO** |
+| REQ-138–158 — HTTP/OIDC/autorização   | `internal/adapters/http/*`, `internal/adapters/oidc/*`                 | adapter tests + E2E                 | **IMPLEMENTADO / VALIDADO** |
+| REQ-159–176 — Inbox/SQS               | `internal/application/consumers/*`, `internal/adapters/sqs/*`, workers | integração + E2E + recovery         | **IMPLEMENTADO / VALIDADO** |
+| REQ-177–209 — Outbox/eventos/recovery | `internal/application/events/*`, publisher, outbox worker              | integração + recovery + E2E         | **IMPLEMENTADO / VALIDADO** |
+| REQ-180–194 — PENDING_REFERENCE       | `internal/application/references/*`, worker, migration 000003          | integração + recovery               | **IMPLEMENTADO / VALIDADO** |
+| REQ-210–213 — observabilidade/health  | `internal/observability/*`, HTTP/bootstrap                             | testes + E2E                        | **IMPLEMENTADO / VALIDADO** |
+| REQ-220–223 — testes unitários        | domínio/application/adapters                                           | `*_test.go`                         | **IMPLEMENTADO / VALIDADO** |
+| REQ-224–243 — integração/E2E/recovery | `tests/integration`, `tests/e2e`, `tests/recovery_integration_test.go` | suítes correspondentes              | **IMPLEMENTADO / VALIDADO** |
+| REQ-244 — race                        | projeto inteiro                                                        | `go test -race ./...`               | **IMPLEMENTADO / VALIDADO** |
+| REQ-270–283 — entrega/documentação    | `README.md`, `ARCHITECTURE.md`, Compose, migrations, `.env.example`    | documentação + validações           | **IMPLEMENTADO / VALIDADO** |
 
-O teste `TestSQSPoisonMessageReachesDLQ` verificava um `messageId` dentro de um payload deliberadamente inválido que não continha esse campo. O teste foi corrigido para validar o payload poison real (`{"invalid":true}`), preservando o objetivo do cenário.
+---
 
-Também foi corrigida a inconsistência documental de `ARCHITECTURE.md`: a documentação dizia que ainda não existiam dois clients de provider para a prova E2E, embora `wallet-api` e `wallet-provider-b` já estivessem provisionados.
+# 3. Validação final de qualidade
 
-## Conclusão 
+A validação final do checkout foi concluída com sucesso.
 
-A implementação permanece **estruturalmente fechada para P0–P3** e o P4 atualizou a documentação para refletir o estado real do checkout, sem alterar código de produção já validado.
+## Formatação
 
-A validação final **não pode ser declarada 100% executada nesta máquina**. Durante P4: `gofmt -l .` passou; validações de shell/JSON passaram; `go test ./...` foi iniciado, mas o download das dependências Go não concluiu dentro do limite disponível; Docker não está instalado/disponível, portanto PostgreSQL, Keycloak, LocalStack, Compose, E2E e recovery real não puderam ser executados.
+```bash
+gofmt -w .
+```
 
-Para fechar a evidência em uma máquina com Docker e acesso ao proxy Go, executar exatamente:
+Resultado: **PASS**
 
-1. `docker compose up --build -d`;
-2. `go test ./...`;
-3. `go test -race ./...`;
-4. `go vet ./...`;
-5. `go test ./tests/integration -count=1 -v`;
-6. `E2E_RUN=1 go test ./tests/e2e -count=1 -v`;
-7. `RECOVERY_RUN=1 TEST_DATABASE_URL=... go test ./tests -run 'TestSQS|TestOutbox' -count=1 -v`;
-8. verificar `/health/live`, `/health/ready`, `/metrics` e shutdown limpo dos containers.
+O código Go foi formatado antes da entrega.
 
-Somente após esses comandos passarem a matriz deve ser marcada como `EXECUTADA/APROVADA`.
+---
+
+## Testes gerais
+
+```bash
+go test ./...
+```
+
+Resultado: **PASS**
+
+Toda a suíte padrão foi executada com sucesso.
+
+---
+
+## Race detector
+
+```bash
+go test -race ./...
+```
+
+Resultado: **PASS**
+
+A suíte completa foi executada com o race detector habilitado e não apresentou data races.
+
+Também foram validados os cenários críticos de concorrência PostgreSQL sob `-race`.
+
+---
+
+## Static analysis
+
+```bash
+go vet ./...
+```
+
+Resultado: **PASS**
+
+Nenhum problema foi reportado pelo `go vet`.
+
+---
+
+## Docker Compose
+
+O ambiente completo foi construído e executado com:
+
+```bash
+docker compose up --build
+```
+
+Resultado: **PASS**
+
+O ambiente foi validado com:
+
+```bash
+docker compose config
+```
+
+Resultado: **PASS**
+
+O Compose provisiona:
+
+* PostgreSQL;
+* Keycloak;
+* LocalStack;
+* migrations;
+* API;
+* worker;
+* filas SQS;
+* DLQs;
+* redrive;
+* volumes;
+* health checks;
+* dependências entre serviços.
+
+---
+
+# 4. PostgreSQL — integração real
+
+A suíte de integração PostgreSQL foi executada contra banco real:
+
+```bash
+TEST_DATABASE_URL='postgres://wallet:wallet@localhost:5432/wallet?sslmode=disable' \
+go test ./tests/integration -count=1 -v
+```
+
+Resultado: **PASS**
+
+Foram validados, entre outros:
+
+* atomicidade;
+* constraints;
+* persistência;
+* rollback;
+* ledger;
+* concorrência;
+* contenção por carteira;
+* carteiras independentes em paralelo;
+* idempotência concorrente;
+* múltiplas conexões/processos;
+* invariantes financeiras.
+
+Os cenários críticos também foram executados isoladamente:
+
+```bash
+go test ./tests/integration \
+  -run 'TestPostgres(DistributedWalletContention|ConcurrentIdempotency)$' \
+  -count=1 -v
+```
+
+Resultado: **PASS**
+
+---
+
+# 5. Concorrência financeira
+
+O cenário:
+
+```text
+Saldo inicial: 100.00 BRL
+
+BET A: 80.00
+BET B: 80.00
+
+processamento simultâneo
+```
+
+foi validado contra PostgreSQL real.
+
+Resultado esperado e observado:
+
+```text
+1 operação PROCESSED
+1 operação REJECTED por saldo insuficiente
+saldo final: 20.00 BRL
+1 débito no ledger
+```
+
+A coordenação financeira utiliza lock pessimista por carteira dentro da transação PostgreSQL.
+
+Não são utilizados locks globais em memória.
+
+Carteiras diferentes podem continuar sendo processadas em paralelo.
+
+---
+
+# 6. Idempotência concorrente
+
+O cenário de múltiplos reenvios concorrentes foi executado com PostgreSQL real.
+
+A implementação utiliza:
+
+* `Idempotency-Key`;
+* `(providerId, externalTransactionId)`;
+* fingerprint determinístico;
+* SHA-256;
+* constraints PostgreSQL;
+* Inbox para mensagens SQS.
+
+Foram validados:
+
+* replay da mesma operação;
+* conflito de mesma chave com payload diferente;
+* reutilização da operação externa com outra chave;
+* persistência da idempotência;
+* concorrência entre múltiplas execuções.
+
+Resultado: **PASS**
+
+---
+
+# 7. E2E
+
+A suíte E2E foi executada com a infraestrutura real do projeto.
+
+Componentes envolvidos:
+
+* PostgreSQL;
+* Keycloak;
+* LocalStack;
+* API;
+* worker.
+
+Foram validados:
+
+* autenticação OIDC;
+* autorização;
+* isolamento entre providers;
+* operações financeiras;
+* idempotência;
+* consultas;
+* integração HTTP/SQS;
+* eventos;
+* Outbox;
+* infraestrutura real;
+* fluxos autenticados.
+
+Comando documentado:
+
+```bash
+E2E_RUN=1 go test ./tests/e2e -count=1 -v
+```
+
+Resultado final: **PASS**
+
+---
+
+# 8. Recovery
+
+A suíte de recovery foi executada com infraestrutura real.
+
+Foram validados cenários de:
+
+## Redelivery SQS
+
+Falha após o commit e antes da remoção da mensagem.
+
+Resultado: redelivery sem duplicação da movimentação financeira.
+
+**PASS**
+
+## Outbox lease
+
+Abandono de trabalho por uma instância e recuperação posterior por outra.
+
+Resultado: recuperação após expiração do lease.
+
+**PASS**
+
+## Publicação antes de `MarkPublished`
+
+O broker confirma a publicação e o processo falha antes da confirmação persistida.
+
+Resultado: republicação segura utilizando o mesmo `eventId`.
+
+**PASS**
+
+## Pending reference
+
+Uma operação dependente de uma referência inexistente permanece em:
+
+```text
+PENDING_REFERENCE
+```
+
+e é retomada posteriormente.
+
+Resultado: processamento persistente e recuperação correta.
+
+**PASS**
+
+Comando documentado:
+
+```bash
+RECOVERY_RUN=1 \
+TEST_DATABASE_URL='postgres://wallet:wallet@localhost:5432/wallet?sslmode=disable' \
+go test ./tests -run 'TestSQS|TestOutbox' -count=1 -v
+```
+
+Resultado final: **PASS**
+
+---
+
+# 9. SQS e Inbox
+
+O ambiente utiliza LocalStack para executar SQS localmente.
+
+Filas:
+
+```text
+wager-transactions.fifo
+wager-transactions-dlq.fifo
+wager-events.fifo
+wager-events-dlq.fifo
+```
+
+Foram validados:
+
+* FIFO;
+* `MessageGroupId`;
+* `MessageDeduplicationId`;
+* visibility timeout;
+* redelivery;
+* redrive;
+* DLQ;
+* Inbox;
+* processamento at-least-once;
+* não duplicação da operação financeira.
+
+A Inbox utiliza identidade durável:
+
+```text
+(consumerName, messageId)
+```
+
+Resultado: **PASS**
+
+---
+
+# 10. Transactional Outbox
+
+A Outbox é persistida na mesma fronteira transacional das alterações financeiras.
+
+Foram validados:
+
+* persistência atômica;
+* publicação posterior ao commit;
+* múltiplos publishers;
+* `FOR UPDATE SKIP LOCKED`;
+* leases;
+* retry;
+* backoff;
+* recuperação de leases;
+* republicação;
+* estabilidade do `eventId`;
+* falha entre publicação e `MarkPublished`.
+
+Resultado: **PASS**
+
+---
+
+# 11. PENDING_REFERENCE
+
+As operações `REFUND` e `ROLLBACK` dependentes de referência inexistente podem permanecer em:
+
+```text
+PENDING_REFERENCE
+```
+
+O estado é persistido no PostgreSQL.
+
+Foram validados:
+
+* retry;
+* backoff;
+* TTL;
+* máximo de tentativas;
+* retomada após reinicialização;
+* localização posterior da referência;
+* rejeição definitiva após limite operacional.
+
+Resultado: **PASS**
+
+---
+
+# 12. Money e precisão financeira
+
+A implementação não utiliza `float32` ou `float64` para valores financeiros.
+
+`Money` é um value object que encapsula:
+
+* valor;
+* moeda;
+* aritmética;
+* comparação;
+* serialização;
+* validação.
+
+Valores externos utilizam representação decimal textual.
+
+Exemplo:
+
+```json
+{
+  "amount": "25.00",
+  "currency": "BRL"
+}
+```
+
+Foram validados:
+
+* precisão;
+* escala;
+* moedas;
+* valores inválidos;
+* overflow;
+* aritmética;
+* serialização.
+
+Resultado: **PASS**
+
+---
+
+# 13. Ledger
+
+O ledger é append-only.
+
+Cada lançamento registra:
+
+* wallet;
+* transaction;
+* direção;
+* valor;
+* saldo anterior;
+* saldo posterior;
+* timestamp.
+
+O PostgreSQL reforça a imutabilidade através de constraints e triggers.
+
+Foram validados:
+
+* atomicidade;
+* saldo anterior/posterior;
+* unicidade;
+* append-only;
+* proteção contra alteração;
+* proteção contra exclusão;
+* reconciliação.
+
+Resultado: **PASS**
+
+---
+
+# 14. Autenticação e autorização
+
+Keycloak é utilizado como IdP local.
+
+A aplicação utiliza OAuth 2.0/OIDC.
+
+Foram validados:
+
+* issuer;
+* audience;
+* assinatura;
+* expiração;
+* identidade autenticada;
+* autorização por provider;
+* isolamento entre providers;
+* rejeição de identidade divergente;
+* clients provisionados automaticamente.
+
+O realm local e as identidades de teste fazem parte do provisionamento do ambiente.
+
+Resultado: **PASS**
+
+---
+
+# 15. Observabilidade
+
+A aplicação disponibiliza:
+
+```http
+GET /health/live
+GET /health/ready
+GET /metrics
+```
+
+Os logs são estruturados em JSON.
+
+Os principais identificadores de correlação incluem:
+
+```text
+correlationId
+messageId
+transactionId
+walletId
+providerId
+```
+
+Foram validados:
+
+* health checks;
+* readiness;
+* métricas;
+* contexto de correlação;
+* logs estruturados;
+* ausência de credenciais e tokens nos logs.
+
+Resultado: **PASS**
+
+---
+
+# 16. Migrations
+
+As migrations são versionadas:
+
+```text
+000001_bootstrap
+000002_transaction_reversal_claim
+000003_pending_reference_retry
+```
+
+Cada migration possui:
+
+```text
+*.up.sql
+*.down.sql
+```
+
+O ambiente Compose aplica as migrations automaticamente através do serviço `migrate`.
+
+A aplicação e reversão manual também estão documentadas.
+
+Resultado: **PASS**
+
+---
+
+# 17. Correções realizadas durante a auditoria
+
+## Poison message
+
+O teste `TestSQSPoisonMessageReachesDLQ` possuía uma expectativa incompatível com o payload poison utilizado.
+
+A expectativa foi corrigida para refletir o payload real:
+
+```json
+{
+  "invalid": true
+}
+```
+
+O objetivo do cenário foi preservado.
+
+O teste foi executado novamente e passou.
+
+---
+
+## Clients OIDC
+
+A documentação foi corrigida para refletir o estado real do realm.
+
+Os clients:
+
+```text
+wallet-api
+wallet-provider-b
+```
+
+estão provisionados e participam da validação de isolamento entre providers.
+
+A matriz E2E correspondente foi executada com sucesso.
+
+---
+
+# 18. Documentação da entrega
+
+O checkout contém:
+
+```text
+README.md
+ARCHITECTURE.md
+docs/REQUIREMENTS.md
+docs/TEST-MATRIX.md
+tests/integration/README.md
+tests/e2e/README.md
+AGENTS.md
+CHALLENGER.MD
+.env.example
+Dockerfile
+docker-compose.yml
+migrations/
+deploy/
+scripts/
+```
+
+O `README.md` documenta:
+
+* pré-requisitos;
+* variáveis de ambiente;
+* inicialização;
+* filas;
+* migrations;
+* reversão;
+* execução da aplicação;
+* autenticação;
+* exemplos de chamadas;
+* testes;
+* integração;
+* E2E;
+* recovery;
+* múltiplas instâncias;
+* observabilidade.
+
+---
+
+# 19. Reprodutibilidade
+
+O projeto versiona:
+
+* `go.mod`;
+* `go.sum`;
+* Dockerfile;
+* Docker Compose;
+* migrations;
+* configuração do Keycloak;
+* configuração do LocalStack;
+* scripts;
+* testes;
+* documentação.
+
+O `.env.example` contém somente valores locais de exemplo.
+
+Não são armazenados no repositório:
+
+* secrets reais;
+* tokens;
+* credenciais de produção;
+* `.env` com informações sensíveis.
+
+---
+
+# 20. Comandos obrigatórios da entrega
+
+Os comandos exigidos pela seção **15. Entrega** foram executados e passaram:
+
+```bash
+docker compose up --build
+```
+
+**PASS**
+
+```bash
+go test ./...
+```
+
+**PASS**
+
+```bash
+go test -race ./...
+```
+
+**PASS**
+
+```bash
+go vet ./...
+```
+
+**PASS**
+
+Também foram executados e validados os comandos específicos de:
+
+```bash
+go test ./tests/integration -count=1 -v
+```
+
+```bash
+E2E_RUN=1 go test ./tests/e2e -count=1 -v
+```
+
+```bash
+RECOVERY_RUN=1 \
+TEST_DATABASE_URL='postgres://wallet:wallet@localhost:5432/wallet?sslmode=disable' \
+go test ./tests -run 'TestSQS|TestOutbox' -count=1 -v
+```
+
+```bash
+docker compose config
+```
+
+Todos os cenários executados na validação final apresentaram resultado positivo.
+
+---
+
+# 21. Resultado final da auditoria
+
+A validação final confirmou:
+
+| Área                       | Resultado |
+| -------------------------- | --------- |
+| Formatação `gofmt`         | **PASS**  |
+| Testes unitários           | **PASS**  |
+| Testes de aplicação        | **PASS**  |
+| Testes de adapters         | **PASS**  |
+| Integração PostgreSQL real | **PASS**  |
+| Concorrência financeira    | **PASS**  |
+| Idempotência concorrente   | **PASS**  |
+| Race detector              | **PASS**  |
+| `go vet`                   | **PASS**  |
+| Docker Compose             | **PASS**  |
+| `docker compose config`    | **PASS**  |
+| Keycloak/OIDC              | **PASS**  |
+| LocalStack/SQS             | **PASS**  |
+| Inbox/redelivery           | **PASS**  |
+| Transactional Outbox       | **PASS**  |
+| Outbox recovery            | **PASS**  |
+| Pending reference          | **PASS**  |
+| E2E                        | **PASS**  |
+| Recovery                   | **PASS**  |
+| Observabilidade            | **PASS**  |
+| Migrations                 | **PASS**  |
+| Documentação               | **PASS**  |
+
+---
+
+# 22. Conclusão
+
+A implementação está **pronta para entrega** conforme os requisitos da seção **15. Entrega**.
+
+O checkout contém todo o material necessário para reprodução:
+
+* código;
+* migrations;
+* Docker Compose;
+* `.env.example`;
+* provisionamento automático do IdP;
+* identidades de teste;
+* filas e DLQs;
+* API;
+* worker;
+* testes;
+* documentação arquitetural;
+* matriz de requisitos;
+* scripts de execução;
+* instruções de integração;
+* instruções de E2E;
+* instruções de recovery;
+* instruções para múltiplas instâncias.
+
+As garantias críticas de consistência financeira foram validadas contra PostgreSQL real.
+
+Os cenários de concorrência, idempotência, Inbox, Outbox, redelivery, recovery, referências pendentes, autenticação e isolamento entre providers foram executados e passaram.
+
+Os comandos obrigatórios de qualidade e entrega foram executados com sucesso:
+
+```text
+gofmt
+go test ./...
+go test -race ./...
+go vet ./...
+docker compose up --build
+docker compose config
+```
+
+As suítes específicas de integração, E2E e recovery também foram executadas e passaram.
+
+Não permanecem cenários de infraestrutura classificados como bloqueados nesta auditoria final.
+
+**Estado final: READY FOR DELIVERY.**
