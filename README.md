@@ -84,7 +84,6 @@ tests/
 As decisões arquiteturais e as garantias de consistência estão documentadas em:
 
 * [`ARCHITECTURE.md`](ARCHITECTURE.md)
-* [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md)
 * [`docs/TEST-MATRIX.md`](docs/TEST-MATRIX.md)
 
 ---
