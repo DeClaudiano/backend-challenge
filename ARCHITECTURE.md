@@ -327,12 +327,12 @@ O comportamento de `PENDING_REFERENCE` é durável: pendências são retomadas p
 
 ## 13. Observabilidade
 
-The application exposes a lightweight metrics endpoint at `GET /metrics` and emits JSON logs with correlation context.
+A aplicação expõe um endpoint leve de métricas em `GET /metrics` e emite logs em JSON com contexto de correlação.
 
-Business HTTP requests receive or generate a `correlationId`; SQS processing adds `messageId`, `walletId` and `providerId` when available.
+As requisições HTTP de negócio recebem ou geram um `correlationId`; o processamento via SQS adiciona `messageId`, `walletId` e `providerId` quando disponíveis.
 
-Financial processing, idempotent replays, retries, Outbox publication/failure, reconciliation divergence and processing latency are instrumented through the application metrics port.
+O processamento financeiro, reprocessamentos idempotentes, retries, publicação/falha do Outbox, divergências de reconciliação e latência de processamento são instrumentados por meio da porta de métricas da aplicação.
 
-Credentials, tokens and complete financial payloads are not logged.
+Credenciais, tokens e payloads financeiros completos não são registrados nos logs.
 
-DLQ accounting remains broker-owned: the application records retry/failure activity, while SQS redrive policy is responsible for moving poison messages to the configured DLQ.
+O controle da DLQ permanece sob responsabilidade do broker: a aplicação registra as atividades de retry/falha, enquanto a política de redrive do SQS é responsável por mover mensagens problemáticas para a DLQ configurada.
